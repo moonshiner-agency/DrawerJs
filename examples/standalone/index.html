@@ -276,15 +276,14 @@
 
             var objectSelected = window.drawer.api.getSelectedObject();
 
-
-
             if(objectSelected.type == "segmentablePolygon")
             {
                 objectSelected.set({
                     objectCaching: false,
                     // hasBorders: false,
-                    // hasControls: false,
-                    hasRotatingPoint: false
+                    hasControls: false,
+                    hasRotatingPoint: false,
+                    sendToBack: true,
                 });
                 window.drawer.fCanvas.renderAll();
 
@@ -306,7 +305,7 @@
                         var circle = new fabric.Circle({
                             left: point.x + centerpoint.x,
                             top: point.y + centerpoint.y,
-                            radius: 7,
+                            radius: 5,
                             hasBorders: false,
                             hasControls: false,
                             name: "draggableCircle",
@@ -324,34 +323,20 @@
                             points[this.circleNo].x = this.left - centerpoint.x;
                             points[this.circleNo].y = this.top - centerpoint.y;
 
-                            // var max = {
-                            //     x: 0,
-                            //     y: 0
-                            // };
-                            // var min = {
-                            //     x: 9999999,
-                            //     y: 9999999
-                            // }
-
-                            // points.forEach(function(point){
-                            //     console.log(points);
-                            //     max.x = Math.max(point.x + centerpoint.x, max.x);
-                            //     max.y = Math.max(point.y + centerpoint.y, max.y);
-                            //     min.x = Math.min(point.x + centerpoint.x, min.x);
-                            //     min.y = Math.min(point.y+ centerpoint.y, min.y);
-                            // });
-
                             objectSelected.set({
-                                points: [points],
-                                // left: min.x,
-                                // top: min.y,
-                                // height: max.y - min.y,
-                                // width: max.x - min.x
+                                points: [points]
                             });
 
-                            // console.log(objectSelected);
                             window.drawer.fCanvas.renderAll();
+
                         });
+
+                        // circle.on("mouseup", function(){
+                        //     var centerpoint = objectSelected.getCenterPoint();
+                        //     objectSelected._fixPoints();
+                        //     objectSelected.setCoords();
+                        //     window.drawer.fCanvas.renderAll();
+                        // });
 
                         window.drawer.fCanvas.add(circle);
                     });
