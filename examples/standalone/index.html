@@ -196,13 +196,13 @@
                     }
                 },
 				Zoom: {
-					enabled: true, 
-					showZoomTooltip: true, 
+					enabled: true,
+					showZoomTooltip: true,
 					useWheelEvents: true,
-					zoomStep: 1.05, 
-					defaultZoom: 1, 
+					zoomStep: 1.05,
+					defaultZoom: 1,
 					maxZoom: 32,
-					minZoom: 1, 
+					minZoom: 1,
 					smoothnessOfWheel: 0,
 					//Moving:
 					enableMove: true,
@@ -212,39 +212,39 @@
 			},
             toolbars: {
                 drawingTools: {
-					position: 'top',         
+					position: 'top',
 					positionType: 'outside',
-					customAnchorSelector: '#custom-toolbar-here',  
-					compactType: 'scrollable',   
-					hidden: false,     
+					customAnchorSelector: '#custom-toolbar-here',
+					compactType: 'scrollable',
+					hidden: false,
 					toggleVisibilityButton: false,
 					fullscreenMode: {
-						position: 'top', 
+						position: 'top',
 						hidden: false,
 						toggleVisibilityButton: false
 					}
 				},
 				toolOptions: {
-					position: 'bottom', 
+					position: 'bottom',
 					positionType: 'inside',
 					compactType: 'popup',
 					hidden: false,
 					toggleVisibilityButton: false,
 					fullscreenMode: {
-						position: 'bottom', 
+						position: 'bottom',
 						compactType: 'popup',
 						hidden: false,
 						toggleVisibilityButton: false
 					}
 				},
 				settings : {
-					position : 'right', 
-					positionType: 'inside',					
+					position : 'right',
+					positionType: 'inside',
 					compactType : 'scrollable',
-					hidden: false,	
+					hidden: false,
 					toggleVisibilityButton: false,
 					fullscreenMode: {
-					    position : 'right', 
+					    position : 'right',
 						hidden: false,
 						toggleVisibilityButton: false
 					}
@@ -261,7 +261,106 @@
 
         $('#canvas-editor').append(window.drawer.getHtml());
         window.drawer.onInsert();
-    });
+
+        var circles = [];
+        var polygonActive = false;
+
+        window.drawer.on("selectionCleared", (e) => {
+            console.log(e);
+            circles.forEach((circle) => {
+                window.drawer.fCanvas.remove(circle);
+            });
+        });
+
+        window.drawer.on("objectSelected", () => {
+
+            var objectSelected = window.drawer.api.getSelectedObject();
+
+
+
+            if(objectSelected.type == "segmentablePolygon")
+            {
+                objectSelected.set({
+                    objectCaching: false,
+                    // hasBorders: false,
+                    // hasControls: false,
+                    hasRotatingPoint: false
+                });
+                window.drawer.fCanvas.renderAll();
+
+                objectSelected.on("moving", function(){
+                    circles.forEach((circle) => {
+                        circle.left = this.points[0][circle.circleNo].x + this.getCenterPoint().x;
+                        circle.top = this.points[0][circle.circleNo].y + this.getCenterPoint().y;
+                    });
+                    window.drawer.fCanvas.renderAll();
+                });
+
+                if(!polygonActive){
+
+                    polygonActive = true;
+                    var points = objectSelected.points[0];
+                    var centerpoint = objectSelected.getCenterPoint();
+
+                    points.forEach((point, index) => {
+                        var circle = new fabric.Circle({
+                            left: point.x + centerpoint.x,
+                            top: point.y + centerpoint.y,
+                            radius: 7,
+                            hasBorders: false,
+                            hasControls: false,
+                            name: "draggableCircle",
+                            circleNo: index,
+                            fill: "rgba(0, 0, 0, 0.5)",
+                            hasRotatingPoint: false,
+                            originX: 'center',
+                            objectCaching:false,
+                            originY: 'center'
+                        });
+                        circles.push(circle);
+
+                        circle.on("moving", function(e){
+
+                            points[this.circleNo].x = this.left - centerpoint.x;
+                            points[this.circleNo].y = this.top - centerpoint.y;
+
+                            // var max = {
+                            //     x: 0,
+                            //     y: 0
+                            // };
+                            // var min = {
+                            //     x: 9999999,
+                            //     y: 9999999
+                            // }
+
+                            // points.forEach(function(point){
+                            //     console.log(points);
+                            //     max.x = Math.max(point.x + centerpoint.x, max.x);
+                            //     max.y = Math.max(point.y + centerpoint.y, max.y);
+                            //     min.x = Math.min(point.x + centerpoint.x, min.x);
+                            //     min.y = Math.min(point.y+ centerpoint.y, min.y);
+                            // });
+
+                            objectSelected.set({
+                                points: [points],
+                                // left: min.x,
+                                // top: min.y,
+                                // height: max.y - min.y,
+                                // width: max.x - min.x
+                            });
+
+                            // console.log(objectSelected);
+                            window.drawer.fCanvas.renderAll();
+                        });
+
+                        window.drawer.fCanvas.add(circle);
+                    });
+                    polygonActive = false;
+                }
+            }
+          console.log('cloned');
+        });
+        });
 </script>
 </body>
 </html>
